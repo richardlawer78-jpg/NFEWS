@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './Login.css';
@@ -82,7 +82,7 @@ const ForgotPassword = () => {
           </div>
           <h1>NFEWS</h1>
           <p>Reset your password</p>
-          <small>● WEST AFRICA REGION</small>
+          <small>â— WEST AFRICA REGION</small>
         </div>
 
         <div className="login-divider"></div>
@@ -91,17 +91,17 @@ const ForgotPassword = () => {
         <div className="steps-indicator">
           {['Verify Email', 'New Password', 'Done'].map((label, i) => (
             <div key={i} className={`step ${step > i ? 'step-done' : ''} ${step === i + 1 ? 'step-active' : ''}`}>
-              <div className="step-circle">{step > i + 1 ? '✓' : i + 1}</div>
+              <div className="step-circle">{step > i + 1 ? 'âœ“' : i + 1}</div>
               <span className="step-label">{label}</span>
               {i < 2 && <div className={`step-line ${step > i + 1 ? 'step-line-done' : ''}`}></div>}
             </div>
           ))}
         </div>
 
-        {error && <div className="login-error">⚠ {error}</div>}
-        {success && <div className="login-success">✅ {success}</div>}
+        {error && <div className="login-error">âš  {error}</div>}
+        {success && <div className="login-success">âœ… {success}</div>}
 
-        {/* Step 1 — Enter Email */}
+        {/* Step 1 â€” Enter Email */}
         {step === 1 && (
           <div className="login-form">
             <p className="forgot-desc">
@@ -118,12 +118,12 @@ const ForgotPassword = () => {
               />
             </div>
             <button className="login-btn" onClick={handleCheckEmail} disabled={loading}>
-              {loading ? '⏳ Verifying...' : '🔍 Verify Email'}
+              {loading ? 'â³ Verifying...' : 'ðŸ” Verify Email'}
             </button>
           </div>
         )}
 
-        {/* Step 2 — New Password */}
+        {/* Step 2 â€” New Password */}
         {step === 2 && (
           <div className="login-form">
             <p className="forgot-desc">
@@ -149,23 +149,23 @@ const ForgotPassword = () => {
               />
             </div>
             <button className="login-btn" onClick={handleResetPassword} disabled={loading}>
-              {loading ? '⏳ Resetting...' : '🔐 Reset Password'}
+              {loading ? 'â³ Resetting...' : 'ðŸ” Reset Password'}
             </button>
             <button
               className="login-btn"
               style={{ background: 'transparent', border: '1px solid var(--navy-4)', marginTop: '8px', boxShadow: 'none' }}
               onClick={() => { setStep(1); setError(''); }}
             >
-              ← Back
+              â† Back
             </button>
           </div>
         )}
 
-        {/* Step 3 — Success */}
+        {/* Step 3 â€” Success */}
         {step === 3 && (
           <div className="login-form">
             <div className="reset-success">
-              <div className="reset-success-icon">🎉</div>
+              <div className="reset-success-icon">ðŸŽ‰</div>
               <h3>Password Reset!</h3>
               <p>Your password has been successfully updated. You can now sign in with your new password.</p>
               <button
@@ -173,7 +173,7 @@ const ForgotPassword = () => {
                 style={{ marginTop: '20px' }}
                 onClick={() => navigate('/login')}
               >
-                🔐 Go to Login
+                ðŸ” Go to Login
               </button>
             </div>
           </div>
