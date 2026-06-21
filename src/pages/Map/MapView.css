@@ -1,0 +1,173 @@
+.map-body {
+  padding: 24px;
+}
+
+.map-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.filter-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #64748b;
+}
+
+.filter-btn:hover {
+  background: #f1f5f9;
+}
+
+.filter-btn.active {
+  background: #0ea5e9;
+  color: white;
+  border-color: #0ea5e9;
+}
+
+.map-count {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.map-legend {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: #475569;
+  flex-wrap: wrap;
+}
+
+.leaflet-map {
+  height: calc(100vh - 220px);
+  width: 100%;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.map-popup h4 {
+  margin: 0 0 4px;
+  font-size: 14px;
+  color: #0f172a;
+}
+
+.map-popup p {
+  margin: 4px 0;
+  font-size: 12px;
+  color: #64748b;
+}
+/* Search Bar */
+.map-search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: #0a1628;
+  border: 1px solid #163058;
+  border-radius: 8px;
+  padding: 8px 12px;
+  gap: 8px;
+  min-width: 280px;
+}
+
+.map-search-icon { font-size: 14px; flex-shrink: 0; }
+
+.map-search-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #fff;
+  font-size: 14px;
+  font-family: inherit;
+}
+
+.map-search-input::placeholder { color: #94a3b8; }
+
+.map-search-clear {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 0;
+}
+
+.map-search-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: #0f2040;
+  border: 1px solid #163058;
+  border-radius: 8px;
+  overflow: hidden;
+  z-index: 1000;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+
+.map-search-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.map-search-item:hover { background: rgba(255,255,255,0.05); }
+
+.search-item-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.search-item-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.search-item-region {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.search-item-risk {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+/* Selected Zone Banner */
+.map-selected-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #0f2040;
+  border: 1px solid #163058;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 13px;
+  color: #e2e8f0;
+  flex-wrap: wrap;
+}
+
+.map-selected-banner strong { color: #fff; font-size: 14px; }
+.selected-risk { font-weight: 700; text-transform: uppercase; font-size: 12px; }
