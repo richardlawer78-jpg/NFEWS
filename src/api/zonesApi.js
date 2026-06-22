@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BASE_URL = 'http://localhost/NFEWS/nfews-backend/api';
+const BASE_URL = '$env:REACT_APP_API_URL';
 
 export const getAllZones = async (country = null) => {
   const url = country
