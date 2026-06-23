@@ -1,7 +1,8 @@
- import { useState } from 'react';
+﻿import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import axios from 'axios';
+import API_URL from '../../api/config';
 import './Login.css';
 
 const Login = () => {
@@ -54,7 +55,7 @@ const Login = () => {
           </div>
           <h1>NFEWS</h1>
           <p>National Flood Early Warning System</p>
-          <small>● WEST AFRICA REGION</small>
+          <small>• WEST AFRICA REGION</small>
         </div>
 
         <div className="login-divider"></div>
