@@ -4,7 +4,7 @@ import Navbar from '../../components/layout/Navbar';
 import { useAuth } from '../../context/AuthContext';
 import './Notifications.css';
 
-const BASE = 'http://localhost/NFEWS/nfews-backend/api';
+const BASE = 'https://nfews-backend-production.up.railway.app/api';
 
 const Notifications = () => {
   const { user, token } = useAuth();

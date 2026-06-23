@@ -22,7 +22,7 @@ const Register = () => {
   useEffect(() => {
     const fetchRegions = async () => {
       try {
-        const res = await axios.get('http://localhost/NFEWS/nfews-backend/api/zones/index.php');
+        const res = await axios.get('' + (process.env.REACT_APP_API_URL || 'https://nfews-backend-production.up.railway.app/api') + '/zones/index.php');
         const uniqueRegions = [];
         const seen = new Set();
         res.data.districts.forEach(d => {
@@ -68,7 +68,7 @@ const Register = () => {
     setLoading(true);
     try {
       await axios.post(
-        'http://localhost/NFEWS/nfews-backend/api/auth/register.php',
+        '' + (process.env.REACT_APP_API_URL || 'https://nfews-backend-production.up.railway.app/api') + '/auth/register.php',
         {
           name: form.name,
           email: form.email,

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BASE_URL = 'http://localhost/NFEWS/nfews-backend/api';
+const BASE_URL = 'https://nfews-backend-production.up.railway.app/api';
 
 export const getReadings = async (district_id = null) => {
   const url = district_id

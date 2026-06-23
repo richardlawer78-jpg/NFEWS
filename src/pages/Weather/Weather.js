@@ -8,7 +8,7 @@ import {
 } from 'recharts';
 import './Weather.css';
 
-const BASE_URL = 'http://localhost/NFEWS/nfews-backend/api';
+const BASE_URL = '' + (process.env.REACT_APP_API_URL || 'https://nfews-backend-production.up.railway.app/api') + '';
 
 const WeatherIcon = ({ description }) => {
   const icons = {

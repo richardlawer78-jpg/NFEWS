@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BASE_URL = 'http://localhost/NFEWS/nfews-backend/api';
+const BASE_URL = 'https://nfews-backend-production.up.railway.app/api';
 
 export const getAlerts = async () => {
   const response = await axios.get(`${BASE_URL}/alerts/index.php`);

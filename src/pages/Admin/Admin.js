@@ -1,10 +1,10 @@
-﻿import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import Navbar from '../../components/layout/Navbar';
 import { useAuth } from '../../context/AuthContext';
 import './Admin.css';
 
-const BASE = 'http://localhost/NFEWS/nfews-backend/api';
+const BASE = '' + (process.env.REACT_APP_API_URL || 'https://nfews-backend-production.up.railway.app/api') + '';
 
 const Admin = () => {
   const { user, token } = useAuth();
@@ -64,7 +64,7 @@ const Admin = () => {
     <div className="page-content">
       <Navbar title="Admin Panel" />
       <div className="admin-denied">
-        <div className="denied-icon">🔒</div>
+        <div className="denied-icon">??</div>
         <h2>Access Denied</h2>
         <p>Only administrators can access this page.</p>
       </div>
@@ -81,7 +81,7 @@ const Admin = () => {
         <div className="admin-tabs">
           {['users', 'alerts'].map(t => (
             <button key={t} className={'admin-tab ' + (tab === t ? 'active' : '')} onClick={() => setTab(t)}>
-              {t === 'users' ? '👥 Users' : '🚨 Alerts'}
+              {t === 'users' ? '?? Users' : '?? Alerts'}
             </button>
           ))}
         </div>
@@ -91,7 +91,7 @@ const Admin = () => {
         ) : tab === 'users' ? (
           <div className="admin-section">
             <div className="section-header">
-              <h3>👥 Registered Users</h3>
+              <h3>?? Registered Users</h3>
               <span className="section-count">{users.length} total</span>
             </div>
             <div className="admin-table-wrap">
@@ -106,7 +106,7 @@ const Admin = () => {
                       <td className="district-name">{u.name}</td>
                       <td>{u.email}</td>
                       <td><span className={'role-badge role-' + u.role}>{u.role}</span></td>
-                      <td><span className={'status-badge ' + (u.is_active ? 'active' : 'inactive')}>{u.is_active ? '✅ Active' : '❌ Inactive'}</span></td>
+                      <td><span className={'status-badge ' + (u.is_active ? 'active' : 'inactive')}>{u.is_active ? '? Active' : '? Inactive'}</span></td>
                       <td>{new Date(u.created_at).toLocaleDateString()}</td>
                       <td>
                         <button className={'action-btn ' + (u.is_active ? 'btn-disable' : 'btn-enable')} onClick={() => toggleUser(u.id, u.is_active)}>
@@ -122,7 +122,7 @@ const Admin = () => {
         ) : (
           <div className="admin-section">
             <div className="section-header">
-              <h3>🚨 All Alerts</h3>
+              <h3>?? All Alerts</h3>
               <span className="section-count">{alerts.length} total</span>
             </div>
             <div className="admin-table-wrap">
@@ -140,7 +140,7 @@ const Admin = () => {
                       <td className="alert-msg-cell">{a.message}</td>
                       <td>{new Date(a.created_at).toLocaleDateString()}</td>
                       <td>
-                        <button className="action-btn btn-delete" onClick={() => deleteAlert(a.id)}>🗑 Delete</button>
+                        <button className="action-btn btn-delete" onClick={() => deleteAlert(a.id)}>?? Delete</button>
                       </td>
                     </tr>
                   ))}

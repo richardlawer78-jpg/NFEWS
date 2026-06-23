@@ -21,7 +21,7 @@ const Login = () => {
     setLoading(true);
     try {
       const response = await axios.post(
-        'http://localhost/NFEWS/nfews-backend/api/auth/login.php',
+        '' + (process.env.REACT_APP_API_URL || 'https://nfews-backend-production.up.railway.app/api') + '/auth/login.php',
         { email, password }
       );
       login(response.data.user, response.data.token);
