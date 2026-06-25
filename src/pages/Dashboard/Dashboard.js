@@ -15,7 +15,7 @@ const StatCard = ({ number, label, color, icon }) => (
   </div>
 );
 
-const Dashboard = () => {
+const Dashboard = ({ onMenuToggle }) => {
   const [zones, setZones] = useState([]);
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -67,7 +67,7 @@ const Dashboard = () => {
 
   if (loading) return (
     <div className="page-content">
-      <Navbar title="NFEWS Dashboard" subtitle="National Flood Early Warning System" onRefresh={fetchData} />
+      <Navbar title="NFEWS Dashboard" subtitle="National Flood Early Warning System" onRefresh={fetchData} onMenuToggle={onMenuToggle} />
       <div className="loading-screen">
         <div className="spinner"></div>
         <p>Loading NFEWS data...</p>
@@ -81,6 +81,7 @@ const Dashboard = () => {
         title="NFEWS Dashboard"
         subtitle="National Flood Early Warning System — West Africa"
         onRefresh={fetchData}
+        onMenuToggle={onMenuToggle}
       />
 
       <div className="dashboard-body">

@@ -100,7 +100,6 @@
 }
 
 .notif-field select option { background: #0a1628; }
-
 .notif-field textarea { resize: vertical; }
 
 .notif-char-count {
@@ -129,17 +128,22 @@
   font-weight: 700;
   cursor: pointer;
   transition: opacity 0.2s, transform 0.15s;
+  width: 100%;
 }
 
 .notif-send-btn:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
 .notif-send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-.notif-table-wrap { overflow-x: auto; }
+.notif-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
 
 .notif-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 13px;
+  min-width: 500px;
 }
 
 .notif-table th {
@@ -150,12 +154,14 @@
   letter-spacing: 0.5px;
   padding: 10px 16px;
   text-align: left;
+  white-space: nowrap;
 }
 
 .notif-table td {
   padding: 12px 16px;
   color: #e2e8f0;
   border-bottom: 1px solid #163058;
+  white-space: nowrap;
 }
 
 .notif-table tr:last-child td { border-bottom: none; }
@@ -203,7 +209,69 @@
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
-@media (max-width: 600px) {
-  .notif-row { grid-template-columns: 1fr; }
-  .notif-body { padding: 16px 12px 40px; }
+/* ===== MOBILE ===== */
+@media (max-width: 768px) {
+  .notif-body {
+    padding: 14px 12px 40px;
+    gap: 14px;
+  }
+
+  .notif-card {
+    border-radius: 12px;
+  }
+
+  .notif-card-header {
+    padding: 14px 16px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .notif-card-header h3 {
+    font-size: 14px;
+  }
+
+  .notif-form {
+    padding: 14px 16px 16px;
+    gap: 14px;
+  }
+
+  /* Stack district + risk level fields */
+  .notif-row {
+    grid-template-columns: 1fr;
+  }
+
+  .notif-field input,
+  .notif-field select,
+  .notif-field textarea {
+    font-size: 16px; /* prevents iOS auto-zoom on focus */
+  }
+
+  .notif-send-btn {
+    padding: 14px;
+    font-size: 15px;
+  }
+
+  /* Table scrolls horizontally */
+  .notif-table-wrap {
+    margin: 0 -16px;
+    padding: 0 16px;
+  }
+
+  .notif-table th,
+  .notif-table td {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  .notif-loading,
+  .notif-empty {
+    padding: 24px;
+  }
+
+  .notif-denied {
+    padding: 48px 20px;
+  }
+
+  .notif-denied div { font-size: 36px; }
+  .notif-denied h2  { font-size: 20px; }
 }

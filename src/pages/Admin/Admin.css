@@ -28,6 +28,33 @@
 .admin-table-wrap { overflow-x: auto; margin-top: 16px; }
 .admin-loading { display: flex; flex-direction: column; align-items: center; padding: 48px; gap: 12px; }
 
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.section-header h3 { margin: 0; font-size: 16px; color: #1e293b; }
+.section-count { font-size: 13px; color: #64748b; }
+
+.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.data-table th {
+  text-align: left; padding: 10px 12px;
+  background: #f8fafc; color: #64748b;
+  font-weight: 600; font-size: 12px;
+  border-bottom: 1px solid #e2e8f0;
+}
+.data-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #1e293b;
+  vertical-align: middle;
+}
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: #f8fafc; }
+
 .role-badge { padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
 .role-admin { background: #fef3c7; color: #92400e; }
 .role-citizen { background: #e0f2fe; color: #0369a1; }
@@ -49,3 +76,55 @@
 .btn-enable:hover { background: #16a34a; color: white; }
 .btn-delete:hover { background: #dc2626; color: white; }
 .alert-msg-cell { max-width: 250px; font-size: 12px; color: #64748b; }
+
+.country-tag {
+  padding: 3px 8px; border-radius: 20px;
+  background: #f1f5f9; color: #475569;
+  font-size: 12px; font-weight: 500;
+}
+
+/* ===== MOBILE ===== */
+@media (max-width: 768px) {
+  .admin-body { padding: 14px; }
+
+  .admin-tabs { flex-wrap: wrap; }
+  .admin-tab {
+    flex: 1;
+    padding: 10px 12px;
+    text-align: center;
+    font-size: 13px;
+  }
+
+  .admin-section { padding: 14px; border-radius: 10px; }
+
+  /* Tables scroll horizontally on mobile */
+  .admin-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-top: 12px;
+  }
+
+  .data-table { min-width: 580px; }
+
+  .data-table th,
+  .data-table td {
+    padding: 8px 10px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  .alert-msg-cell {
+    max-width: 160px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .action-btn {
+    padding: 4px 10px;
+    font-size: 11px;
+  }
+
+  .admin-denied h2 { font-size: 20px; }
+  .denied-icon { font-size: 48px; }
+}

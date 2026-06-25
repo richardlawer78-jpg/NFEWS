@@ -1,310 +1,301 @@
- import { useState, useEffect, useRef } from 'react';
-import { getAllZones } from '../../api/zonesApi';
+import { useState, useEffect, useCallback } from 'react';
+import {
+ AreaChart, Area, LineChart, Line,
+ XAxis, YAxis, CartesianGrid,
+ Tooltip, Legend, ReferenceLine,
+ ResponsiveContainer
+} from 'recharts';
+import { getReadings, submitReading } from '../../api/readingsApi';
 import Navbar from '../../components/layout/Navbar';
-import { getRiskLabel, getRiskColor } from '../../utils/riskColors';
-import './Zones.css';
+import './Charts.css';
 
-const RiskBar = ({ level, threshold }) => {
-  const percent = Math.min((level / threshold) * 100, 100);
-  const color = percent >= 100 ? '#dc2626' : percent >= 85 ? '#ef4444' : percent >= 65 ? '#f59e0b' : '#22c55e';
-  return (
-    <div className="risk-bar-track">
-      <div className="risk-bar-fill" style={{ width: `${percent}%`, background: color }}></div>
-    </div>
-  );
+const DISTRICTS = [
+ { id: 47,  name: 'Accra Metropolitan', threshold: 1.5, color: '#ef4444' },
+ { id: 66,  name: 'Kasoa',              threshold: 1.2, color: '#f59e0b' },
+ { id: 106, name: 'Keta Municipal',     threshold: 1.2, color: '#8b5cf6' },
+];
+
+const CustomTooltip = ({ active, payload, label }) => {
+ if (active && payload && payload.length) {
+   return (
+     <div className="chart-tooltip">
+       <p className="tooltip-time">{label}</p>
+       {payload.map((entry, i) => (
+         <p key={i} style={{ color: entry.color }}>
+           {entry.name}: <strong>{entry.value}m</strong>
+         </p>
+       ))}
+     </div>
+   );
+ }
+ return null;
 };
 
-const ZoneCard = ({ zone, index }) => {
-  const [visible, setVisible] = useState(false);
-  const ref = useRef();
+const Charts = ({ onMenuToggle }) => {
+ const [allReadings, setAllReadings]       = useState({});
+ const [selectedDistrict, setSelectedDistrict] = useState(47);
+ const [loading, setLoading]               = useState(true);
+ const [simulateLevel, setSimulateLevel]   = useState('');
+ const [simResult, setSimResult]           = useState(null);
+ const [simLoading, setSimLoading]         = useState(false);
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) setVisible(true); },
-      { threshold: 0.1 }
-    );
-    if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, []);
+ const formatReadings = (readings) =>
+   (readings || [])
+     .map(r => ({
+       time: new Date(r.recorded_at).toLocaleDateString('en-GB', {
+         month: 'short', day: 'numeric',
+         hour: '2-digit', minute: '2-digit'
+       }),
+       level: parseFloat(r.level_m),
+       district: r.district_name
+     }))
+     .reverse();
 
-  const riskColor = getRiskColor(zone.risk_level);
+ const fetchAllReadings = useCallback(async () => {
+   try {
+     const results = {};
+     for (const d of DISTRICTS) {
+       const data = await getReadings(d.id);
+       results[d.id] = formatReadings(data.readings);
+     }
+     setAllReadings(results);
+   } catch (err) {
+     console.error('Failed to fetch readings:', err);
+   } finally {
+     setLoading(false);
+   }
+ }, []);
 
-  return (
-    <div
-      ref={ref}
-      className={`zone-card ${visible ? 'zone-card-visible' : ''}`}
-      style={{ animationDelay: `${(index % 12) * 40}ms` }}
-    >
-      {/* Top accent bar */}
-      <div className="zone-card-accent" style={{ background: riskColor }}></div>
+ useEffect(() => {
+   fetchAllReadings();
+   const interval = setInterval(fetchAllReadings, 30000);
+   return () => clearInterval(interval);
+ }, [fetchAllReadings]);
 
-      <div className="zone-card-inner">
-        {/* Header */}
-        <div className="zone-card-head">
-          <div className="zone-card-title-group">
-            <h3 className="zone-card-title">{zone.name}</h3>
-            <div className="zone-card-location">
-              <span className="location-pin">📍</span>
-              <span>{zone.region_name}</span>
-              <span className="location-sep">·</span>
-              <span className="location-country">{zone.country_name}</span>
-            </div>
-          </div>
-          <span className={`badge badge-${zone.risk_level}`}>
-            {getRiskLabel(zone.risk_level)}
-          </span>
-        </div>
+ const currentDistrict = DISTRICTS.find(d => d.id === selectedDistrict);
+ const currentReadings = allReadings[selectedDistrict] || [];
+ const threshold       = currentDistrict?.threshold || 1.5;
+ const latestLevel     = currentReadings.length > 0
+   ? currentReadings[currentReadings.length - 1].level
+   : null;
+ const riskPercent = latestLevel
+   ? Math.min((latestLevel / threshold) * 100, 100).toFixed(1)
+   : 0;
 
-        {/* Divider */}
-        <div className="zone-card-divider"></div>
+ const getRiskStatus = (level) => {
+   if (!level)                    return { label: 'NO DATA',  color: '#94a3b8' };
+   if (level >= threshold)        return { label: 'CRITICAL', color: '#dc2626' };
+   if (level >= threshold * 0.85) return { label: 'DANGER',   color: '#ef4444' };
+   if (level >= threshold * 0.65) return { label: 'CAUTION',  color: '#f59e0b' };
+   return                                { label: 'SAFE',     color: '#22c55e' };
+ };
 
-        {/* Thresholds */}
-        <div className="zone-card-metrics">
-          <div className="zone-metric">
-            <div className="zone-metric-header">
-              <span className="zone-metric-icon">🌧️</span>
-              <span className="zone-metric-label">Rainfall Threshold</span>
-            </div>
-            <div className="zone-metric-value">{zone.rainfall_threshold_mm} <span>mm</span></div>
-            <RiskBar level={zone.rainfall_threshold_mm} threshold={100} />
-          </div>
-          <div className="zone-metric">
-            <div className="zone-metric-header">
-              <span className="zone-metric-icon">💧</span>
-              <span className="zone-metric-label">Water Level Limit</span>
-            </div>
-            <div className="zone-metric-value">{zone.water_level_threshold_m} <span>m</span></div>
-            <RiskBar level={zone.water_level_threshold_m} threshold={3} />
-          </div>
-        </div>
+ const status = getRiskStatus(latestLevel);
 
-        {/* Footer */}
-        <div className="zone-card-footer">
-          <div className="zone-coords">
-            <span>🌐</span>
-            <span>{parseFloat(zone.lat).toFixed(4)}°N, {parseFloat(zone.lng).toFixed(4)}°E</span>
-          </div>
-          <div className="zone-id">ID #{zone.id}</div>
-        </div>
-      </div>
-    </div>
-  );
+ const handleSimulate = async () => {
+   if (!simulateLevel) return;
+   setSimLoading(true);
+   setSimResult(null);
+   try {
+     const res = await submitReading(selectedDistrict, parseFloat(simulateLevel));
+     setSimResult(res);
+     const data = await getReadings(selectedDistrict);
+     setAllReadings(prev => ({
+       ...prev,
+       [selectedDistrict]: formatReadings(data.readings)
+     }));
+     setSimulateLevel('');
+   } catch (err) {
+     console.error('Simulation failed:', err);
+   } finally {
+     setSimLoading(false);
+   }
+ };
+
+ if (loading) return (
+   <div className="page-content">
+     <Navbar title="Water Level Charts" subtitle="Real-time trend analysis" onMenuToggle={onMenuToggle} />
+     <div className="loading-screen">
+       <div className="spinner"></div>
+       <p>Loading chart data...</p>
+     </div>
+   </div>
+ );
+
+ return (
+   <div className="page-content">
+     <Navbar
+       title="Water Level Charts"
+       subtitle="Real-time trend analysis — West Africa"
+       onMenuToggle={onMenuToggle}
+     />
+     <div className="charts-body">
+
+       <div className="charts-header">
+         <div className="district-tabs">
+           {DISTRICTS.map(d => (
+             <button
+               key={d.id}
+               className={`district-tab ${selectedDistrict === d.id ? 'active' : ''}`}
+               style={selectedDistrict === d.id ? {
+                 borderColor: d.color,
+                 color: d.color,
+                 boxShadow: `0 4px 12px ${d.color}30`
+               } : {}}
+               onClick={() => setSelectedDistrict(d.id)}
+             >
+               <span className="tab-dot" style={{ background: d.color }}></span>
+               {d.name}
+             </button>
+           ))}
+         </div>
+       </div>
+
+       <div className="chart-stats">
+         {[
+           { label: 'Current Level',   value: latestLevel ? `${latestLevel}m` : 'N/A', color: status.color },
+           { label: 'Threshold Limit', value: `${threshold}m`,  color: '#0ea5e9' },
+           { label: 'Risk Status',     value: status.label,      color: status.color },
+           { label: 'Threshold %',     value: `${riskPercent}%`, color: riskPercent >= 100 ? '#dc2626' : riskPercent >= 85 ? '#ef4444' : riskPercent >= 65 ? '#f59e0b' : '#22c55e' },
+           { label: 'Total Readings',  value: currentReadings.length, color: '#8b5cf6' },
+         ].map((s, i) => (
+           <div key={i} className="chart-stat-card" style={{ borderTopColor: s.color }}>
+             <div className="chart-stat-label">{s.label}</div>
+             <div className="chart-stat-value" style={{ color: s.color }}>{s.value}</div>
+           </div>
+         ))}
+       </div>
+
+       <div className="threshold-bar-section">
+         <div className="threshold-bar-label">
+           <span>Water Level Progress to Threshold</span>
+           <span style={{ color: status.color, fontWeight: 700 }}>
+             {riskPercent}% of {threshold}m danger limit
+           </span>
+         </div>
+         <div className="threshold-bar-track">
+           <div
+             className="threshold-bar-fill"
+             style={{ width: `${riskPercent}%`, background: status.color }}
+           ></div>
+         </div>
+         <div className="threshold-bar-labels">
+           <span>0m</span>
+           <span style={{ color: '#f59e0b' }}>⚡ Caution ({(threshold * 0.65).toFixed(2)}m)</span>
+           <span style={{ color: '#ef4444' }}>⚠ Danger ({(threshold * 0.85).toFixed(2)}m)</span>
+           <span style={{ color: '#dc2626' }}>🚨 Critical ({threshold}m)</span>
+         </div>
+       </div>
+
+       <div className="chart-section">
+         <div className="chart-section-header">
+           <div>
+             <h3>📈 Water Level Trend</h3>
+             <p className="chart-section-sub">{currentDistrict?.name} — Last {currentReadings.length} readings</p>
+           </div>
+           <span className={`risk-pill risk-pill-${status.label.toLowerCase()}`}>
+             {status.label}
+           </span>
+         </div>
+         <div className="chart-wrapper">
+           <ResponsiveContainer width="100%" height={340}>
+             <AreaChart data={currentReadings} margin={{ top: 20, right: 30, left: 10, bottom: 10 }}>
+               <defs>
+                 <linearGradient id="levelGrad" x1="0" y1="0" x2="0" y2="1">
+                   <stop offset="5%"  stopColor={currentDistrict?.color} stopOpacity={0.25} />
+                   <stop offset="95%" stopColor={currentDistrict?.color} stopOpacity={0.02} />
+                 </linearGradient>
+               </defs>
+               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+               <XAxis dataKey="time" tick={{ fontSize: 11, fill: '#94a3b8' }} interval="preserveStartEnd" tickLine={false} />
+               <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} domain={[0, Math.max(threshold + 0.5, 2.5)]} tickFormatter={v => `${v}m`} axisLine={false} tickLine={false} />
+               <Tooltip content={<CustomTooltip />} />
+               <ReferenceLine y={threshold} stroke="#dc2626" strokeDasharray="6 3" strokeWidth={2} label={{ value: `🚨 Critical ${threshold}m`, fill: '#dc2626', fontSize: 12, fontWeight: 700 }} />
+               <ReferenceLine y={threshold * 0.85} stroke="#f59e0b" strokeDasharray="4 4" label={{ value: `⚠ Danger ${(threshold * 0.85).toFixed(2)}m`, fill: '#f59e0b', fontSize: 11 }} />
+               <ReferenceLine y={threshold * 0.65} stroke="#22c55e" strokeDasharray="4 4" label={{ value: `⚡ Caution ${(threshold * 0.65).toFixed(2)}m`, fill: '#22c55e', fontSize: 11 }} />
+               <Area type="monotone" dataKey="level" stroke={currentDistrict?.color} strokeWidth={3} fill="url(#levelGrad)" name="Water Level" dot={{ fill: currentDistrict?.color, r: 4, strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 7 }} />
+             </AreaChart>
+           </ResponsiveContainer>
+         </div>
+       </div>
+
+       <div className="chart-section">
+         <div className="chart-section-header">
+           <div>
+             <h3>📊 District Comparison</h3>
+             <p className="chart-section-sub">Latest 10 readings per district</p>
+           </div>
+         </div>
+         <div className="chart-wrapper">
+           <ResponsiveContainer width="100%" height={300}>
+             <LineChart margin={{ top: 10, right: 30, left: 10, bottom: 10 }}>
+               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+               <XAxis dataKey="time" tick={{ fontSize: 10, fill: '#94a3b8' }} tickLine={false} />
+               <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} tickFormatter={v => `${v}m`} axisLine={false} tickLine={false} />
+               <Tooltip content={<CustomTooltip />} />
+               <Legend wrapperStyle={{ fontSize: '13px', paddingTop: '16px' }} />
+               {DISTRICTS.map(d => (
+                 <Line key={d.id} data={(allReadings[d.id] || []).slice(-10)} type="monotone" dataKey="level" stroke={d.color} strokeWidth={2.5} name={d.name} dot={{ r: 4, fill: d.color, stroke: '#fff', strokeWidth: 2 }} activeDot={{ r: 6 }} />
+               ))}
+             </LineChart>
+           </ResponsiveContainer>
+         </div>
+       </div>
+
+       <div className="chart-section simulate-section">
+         <div className="chart-section-header">
+           <div>
+             <h3>⚡ Simulate Sensor Reading</h3>
+             <p className="chart-section-sub">
+               Test the threshold alert system for {currentDistrict?.name} (limit: {threshold}m)
+             </p>
+           </div>
+         </div>
+         <div className="simulate-body">
+           <div className="simulate-hint-row">
+             <div className="simulate-hint safe">Safe: below {(threshold * 0.65).toFixed(2)}m</div>
+             <div className="simulate-hint caution">Caution: {(threshold * 0.65).toFixed(2)}m – {(threshold * 0.85).toFixed(2)}m</div>
+             <div className="simulate-hint danger">Danger: {(threshold * 0.85).toFixed(2)}m – {threshold}m</div>
+             <div className="simulate-hint critical">Critical: above {threshold}m</div>
+           </div>
+           <div className="simulate-controls">
+             <div className="simulate-input-wrap">
+               <input
+                 type="number"
+                 step="0.1"
+                 min="0"
+                 max="5"
+                 placeholder="e.g. 1.8"
+                 value={simulateLevel}
+                 onChange={e => setSimulateLevel(e.target.value)}
+                 className="simulate-input"
+               />
+               <span className="simulate-unit">meters</span>
+             </div>
+             <button
+               className="simulate-btn"
+               onClick={handleSimulate}
+               disabled={simLoading || !simulateLevel}
+             >
+               {simLoading ? '⏳ Submitting...' : '⚡ Submit Reading'}
+             </button>
+           </div>
+           {simResult && (
+             <div className={`sim-result sim-${simResult.risk_level}`}>
+               <div className="sim-result-header">
+                 <strong>🎯 Result: {simResult.risk_level?.toUpperCase()}</strong>
+                 <span>Level submitted: {simResult.level_m}m</span>
+               </div>
+               {simResult.alert && <p className="sim-alert-msg">{simResult.alert}</p>}
+               {!simResult.alert && <p className="sim-alert-msg">✅ Water level is within safe range.</p>}
+             </div>
+           )}
+         </div>
+       </div>
+
+     </div>
+   </div>
+ );
 };
 
-const Zones = () => {
-  const [zones, setZones] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
-  const [countryFilter, setCountryFilter] = useState('all');
-  const [riskFilter, setRiskFilter] = useState('all');
-  const [view, setView] = useState('grid');
-  const [sortBy, setSortBy] = useState('risk');
-
-  useEffect(() => {
-    const fetchZones = async () => {
-      try {
-        const data = await getAllZones();
-        setZones(data.districts || []);
-      } catch (err) {
-        console.error('Failed to fetch zones:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchZones();
-  }, []);
-
-  const riskOrder = { critical: 0, danger: 1, caution: 2, safe: 3 };
-  const countries = ['all', ...new Set(zones.map(z => z.country_name))];
-
-  const filtered = zones
-    .filter(z => {
-      const matchSearch =
-        z.name.toLowerCase().includes(search.toLowerCase()) ||
-        z.region_name.toLowerCase().includes(search.toLowerCase()) ||
-        z.country_name.toLowerCase().includes(search.toLowerCase());
-      const matchCountry = countryFilter === 'all' || z.country_name === countryFilter;
-      const matchRisk = riskFilter === 'all' || z.risk_level === riskFilter;
-      return matchSearch && matchCountry && matchRisk;
-    })
-    .sort((a, b) => {
-      if (sortBy === 'risk') return riskOrder[a.risk_level] - riskOrder[b.risk_level];
-      if (sortBy === 'name') return a.name.localeCompare(b.name);
-      if (sortBy === 'country') return a.country_name.localeCompare(b.country_name);
-      return 0;
-    });
-
-  const stats = {
-    total: zones.length,
-    critical: zones.filter(z => z.risk_level === 'critical').length,
-    danger: zones.filter(z => z.risk_level === 'danger').length,
-    caution: zones.filter(z => z.risk_level === 'caution').length,
-    safe: zones.filter(z => z.risk_level === 'safe').length,
-  };
-
-  if (loading) return (
-    <div className="page-content">
-      <Navbar title="Flood Zones" subtitle="All monitored districts across West Africa" />
-      <div className="loading-screen">
-        <div className="spinner"></div>
-        <p>Loading zones data...</p>
-      </div>
-    </div>
-  );
-
-  return (
-    <div className="page-content">
-      <Navbar
-        title="Flood Zones"
-        subtitle="All monitored districts across West Africa"
-      />
-      <div className="zones-body">
-
-        {/* Stats */}
-        <div className="zones-stats">
-          {[
-            { label: 'Total Zones',  value: stats.total,    color: '#0ea5e9', risk: 'all' },
-            { label: 'Critical',     value: stats.critical, color: '#dc2626', risk: 'critical' },
-            { label: 'Danger',       value: stats.danger,   color: '#ef4444', risk: 'danger' },
-            { label: 'Caution',      value: stats.caution,  color: '#f59e0b', risk: 'caution' },
-            { label: 'Safe',         value: stats.safe,     color: '#22c55e', risk: 'safe' },
-          ].map((s, i) => (
-            <div
-              key={i}
-              className={`zones-stat-card ${riskFilter === s.risk ? 'zones-stat-active' : ''}`}
-              style={{ '--accent': s.color }}
-              onClick={() => setRiskFilter(s.risk)}
-            >
-              <div className="zones-stat-icon" style={{ color: s.color }}>
-                {i === 0 ? '◉' : i === 1 ? '🚨' : i === 2 ? '⚠️' : i === 3 ? '⚡' : '✅'}
-              </div>
-              <div className="zones-stat-value" style={{ color: s.color }}>{s.value}</div>
-              <div className="zones-stat-label">{s.label}</div>
-              <div className="zones-stat-bar" style={{ background: s.color, width: `${(s.value / stats.total) * 100}%` }}></div>
-            </div>
-          ))}
-        </div>
-
-        {/* Toolbar */}
-        <div className="zones-toolbar">
-          <div className="zones-search-wrap">
-            <span className="search-icon-inner">🔍</span>
-            <input
-              type="text"
-              placeholder="Search by district, region or country..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="zones-search-input"
-            />
-            {search && (
-              <button className="search-clear-btn" onClick={() => setSearch('')}>✕</button>
-            )}
-          </div>
-
-          <div className="zones-controls">
-            <select className="filter-select" value={countryFilter} onChange={e => setCountryFilter(e.target.value)}>
-              {countries.map(c => (
-                <option key={c} value={c}>{c === 'all' ? '🌍 All Countries' : c}</option>
-              ))}
-            </select>
-
-            <select className="filter-select" value={sortBy} onChange={e => setSortBy(e.target.value)}>
-              <option value="risk">Sort: Risk Level</option>
-              <option value="name">Sort: Name A–Z</option>
-              <option value="country">Sort: Country</option>
-            </select>
-
-            <div className="view-toggle">
-              <button className={`view-btn ${view === 'grid' ? 'active' : ''}`} onClick={() => setView('grid')} title="Grid view">▦</button>
-              <button className={`view-btn ${view === 'list' ? 'active' : ''}`} onClick={() => setView('list')} title="List view">≡</button>
-            </div>
-          </div>
-        </div>
-
-        {/* Results Bar */}
-        <div className="zones-results-bar">
-          <span>
-            Showing <strong>{filtered.length}</strong> of <strong>{zones.length}</strong> districts
-            {countryFilter !== 'all' && <span className="filter-tag">🌍 {countryFilter}</span>}
-            {riskFilter !== 'all' && <span className="filter-tag" style={{ background: getRiskColor(riskFilter) + '20', color: getRiskColor(riskFilter) }}>{riskFilter}</span>}
-          </span>
-          {(search || countryFilter !== 'all' || riskFilter !== 'all') && (
-            <button className="clear-all-btn" onClick={() => { setSearch(''); setCountryFilter('all'); setRiskFilter('all'); }}>
-              ✕ Clear all filters
-            </button>
-          )}
-        </div>
-
-        {/* Grid View */}
-        {view === 'grid' && (
-          <div className="zones-grid">
-            {filtered.map((zone, index) => (
-              <ZoneCard key={zone.id} zone={zone} index={index} />
-            ))}
-          </div>
-        )}
-
-        {/* List View */}
-        {view === 'list' && (
-          <div className="zones-table-wrap">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>District</th>
-                  <th>Region</th>
-                  <th>Country</th>
-                  <th>Risk Level</th>
-                  <th>Rainfall Threshold</th>
-                  <th>Water Level</th>
-                  <th>Coordinates</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((zone, index) => (
-                  <tr key={zone.id} className="zones-table-row">
-                    <td className="row-num">{index + 1}</td>
-                    <td className="district-name">{zone.name}</td>
-                    <td>{zone.region_name}</td>
-                    <td><span className="country-tag">{zone.country_name}</span></td>
-                    <td>
-                      <span className={`badge badge-${zone.risk_level}`}>
-                        {getRiskLabel(zone.risk_level)}
-                      </span>
-                    </td>
-                    <td className="threshold-val">🌧️ {zone.rainfall_threshold_mm}mm</td>
-                    <td className="threshold-val">💧 {zone.water_level_threshold_m}m</td>
-                    <td className="coords-val">
-                      {parseFloat(zone.lat).toFixed(3)}°, {parseFloat(zone.lng).toFixed(3)}°
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {filtered.length === 0 && (
-              <div className="table-empty">No districts found.</div>
-            )}
-          </div>
-        )}
-
-        {/* Empty State */}
-        {filtered.length === 0 && (
-          <div className="zones-empty">
-            <div className="zones-empty-icon">🔍</div>
-            <h3>No districts found</h3>
-            <p>Try adjusting your search or filters</p>
-            <button
-              className="btn btn-primary"
-              onClick={() => { setSearch(''); setCountryFilter('all'); setRiskFilter('all'); }}
-            >
-              Clear all filters
-            </button>
-          </div>
-        )}
-
-      </div>
-    </div>
-  );
-};
-
-export default Zones;
+export default Charts;

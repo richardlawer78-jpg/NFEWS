@@ -16,7 +16,7 @@ const FlyToLocation = ({ coords }) => {
   return null;
 };
 
-const MapView = () => {
+const MapView = ({ onMenuToggle }) => {
   const [zones, setZones] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
@@ -72,11 +72,11 @@ const MapView = () => {
 
   return (
     <div className="page-content">
-      <Navbar title="Flood Risk Map" />
+      <Navbar title="Flood Risk Map" onMenuToggle={onMenuToggle} />
       <div className="map-body">
         <div className="map-toolbar">
           <div className="map-search-wrap">
-            <span className="map-search-icon">??</span>
+            <span className="map-search-icon">🔍</span>
             <input
               type="text"
               className="map-search-input"
@@ -85,7 +85,7 @@ const MapView = () => {
               onChange={handleSearchChange}
             />
             {search && (
-              <button className="map-search-clear" onClick={() => { setSearch(""); setSearchResults([]); setSelectedZone(null); }}>?</button>
+              <button className="map-search-clear" onClick={() => { setSearch(""); setSearchResults([]); setSelectedZone(null); }}>✕</button>
             )}
             {searchResults.length > 0 && (
               <div className="map-search-dropdown">
@@ -94,7 +94,7 @@ const MapView = () => {
                     <span className="search-item-dot" style={{ background: getRiskColor(zone.risk_level) }}></span>
                     <div>
                       <div className="search-item-name">{zone.name}</div>
-                      <div className="search-item-region">{zone.region_name} � {zone.country_name}</div>
+                      <div className="search-item-region">{zone.region_name} · {zone.country_name}</div>
                     </div>
                     <span className="search-item-risk" style={{ color: getRiskColor(zone.risk_level) }}>
                       {getRiskLabel(zone.risk_level)}
@@ -125,28 +125,28 @@ const MapView = () => {
 
         {selectedZone && (
           <div className="map-selected-banner">
-            <span style={{ color: getRiskColor(selectedZone.risk_level) }}>?</span>
+            <span style={{ color: getRiskColor(selectedZone.risk_level) }}>📍</span>
             <strong>{selectedZone.name}</strong>
-            <span>{selectedZone.region_name} � {selectedZone.country_name}</span>
+            <span>{selectedZone.region_name} · {selectedZone.country_name}</span>
             <span className="selected-risk" style={{ color: getRiskColor(selectedZone.risk_level) }}>
               {getRiskLabel(selectedZone.risk_level)}
             </span>
-            <span>?? {selectedZone.water_level_threshold_m}m</span>
-            <span>??? {selectedZone.rainfall_threshold_mm}mm</span>
+            <span>💧 {selectedZone.water_level_threshold_m}m</span>
+            <span>🌧️ {selectedZone.rainfall_threshold_mm}mm</span>
           </div>
         )}
 
         <div className="map-legend">
-          <span>?? Safe</span>
-          <span>?? Caution</span>
-          <span>?? Danger</span>
-          <span>?? Critical</span>
+          <span>🟢 Safe</span>
+          <span>🟡 Caution</span>
+          <span>🟠 Danger</span>
+          <span>🔴 Critical</span>
         </div>
 
         <MapContainer center={[8.0, -2.0]} zoom={6} className="leaflet-map">
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution="�? OpenStreetMap contributors"
+            attribution="© OpenStreetMap contributors"
           />
           <FlyToLocation coords={flyTo} />
           {filtered.map(zone => (
@@ -162,12 +162,12 @@ const MapView = () => {
               <Popup>
                 <div className="map-popup">
                   <h4>{zone.name}</h4>
-                  <p>{zone.region_name} � {zone.country_name}</p>
+                  <p>{zone.region_name} · {zone.country_name}</p>
                   <span style={{ background: getRiskColor(zone.risk_level), color: "white", padding: "2px 8px", borderRadius: "10px", fontSize: "12px" }}>
                     {getRiskLabel(zone.risk_level)}
                   </span>
-                  <p>?? Water threshold: {zone.water_level_threshold_m}m</p>
-                  <p>??? Rainfall threshold: {zone.rainfall_threshold_mm}mm</p>
+                  <p>💧 Water threshold: {zone.water_level_threshold_m}m</p>
+                  <p>🌧️ Rainfall threshold: {zone.rainfall_threshold_mm}mm</p>
                 </div>
               </Popup>
             </CircleMarker>
