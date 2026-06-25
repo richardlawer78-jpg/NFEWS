@@ -7,7 +7,7 @@ import {
 } from 'recharts';
 import { getReadings, submitReading } from '../../api/readingsApi';
 import Navbar from '../../components/layout/Navbar';
-import './Charts.css';
+import './Zones.css';
 
 const DISTRICTS = [
  { id: 47,  name: 'Accra Metropolitan', threshold: 1.5, color: '#ef4444' },
